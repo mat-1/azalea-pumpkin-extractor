@@ -4,8 +4,8 @@ import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import de.snowii.extractor.Extractor
-import net.minecraft.block.Block
-import net.minecraft.registry.Registries
+import net.minecraft.world.level.block.Block
+import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.server.MinecraftServer
 
 class Fluids : Extractor.Extractor {
@@ -16,19 +16,19 @@ class Fluids : Extractor.Extractor {
     override fun extract(server: MinecraftServer): JsonElement {
         val topLevelJson = JsonArray()
 
-        for (fluid in Registries.FLUID) {
+        for (fluid in BuiltInRegistries.FLUID) {
             val fluidJson = JsonObject()
-            fluidJson.addProperty("id", Registries.FLUID.getRawId(fluid))
-            fluidJson.addProperty("name", Registries.FLUID.getId(fluid).path)
+            fluidJson.addProperty("id", BuiltInRegistries.FLUID.getId(fluid))
+            fluidJson.addProperty("name", BuiltInRegistries.FLUID.getKey(fluid).path)
 
             val propsJson = JsonArray()
-            for (prop in fluid.stateManager.properties) {
+            for (prop in fluid.stateDefinition.properties) {
                 val propJson = JsonObject()
 
                 propJson.addProperty("name", prop.name)
 
                 val valuesJson = JsonArray()
-                for (value in prop.values) {
+                for (value in prop.possibleValues) {
                     valuesJson.add(value.toString().lowercase())
                 }
                 propJson.add("values", valuesJson)
@@ -38,17 +38,17 @@ class Fluids : Extractor.Extractor {
             fluidJson.add("properties", propsJson)
 
             val statesJson = JsonArray()
-            for ((index, state) in fluid.stateManager.states.withIndex()) {
+            for ((index, state) in fluid.stateDefinition.possibleStates.withIndex()) {
                 val stateJson = JsonObject()
-                stateJson.addProperty("height", state.height)
-                stateJson.addProperty("level", state.level)
+                stateJson.addProperty("height", state.ownHeight)
+                stateJson.addProperty("level", state.amount)
                 stateJson.addProperty("is_empty", state.isEmpty)
-                stateJson.addProperty("blast_resistance", state.blastResistance)
-                stateJson.addProperty("block_state_id", Block.getRawIdFromState(state.blockState))
-                stateJson.addProperty("is_still", state.isStill)
+                stateJson.addProperty("blast_resistance", state.explosionResistance)
+                stateJson.addProperty("block_state_id", Block.getId(state.createLegacyBlock()))
+                stateJson.addProperty("is_still", state.isSource)
                 // TODO: Particle effects
 
-                if (fluid.defaultState == state) {
+                if (fluid.defaultFluidState() == state) {
                     fluidJson.addProperty("default_state_index", index)
                 }
 

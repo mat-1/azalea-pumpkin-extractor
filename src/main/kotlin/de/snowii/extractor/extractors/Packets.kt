@@ -5,9 +5,14 @@ import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import de.snowii.extractor.Extractor
 import net.minecraft.SharedConstants
-import net.minecraft.network.NetworkPhase
-import net.minecraft.network.packet.PacketType
-import net.minecraft.network.state.*
+import net.minecraft.network.ConnectionProtocol
+import net.minecraft.network.ProtocolInfo
+import net.minecraft.network.protocol.PacketType
+import net.minecraft.network.protocol.configuration.ConfigurationProtocols
+import net.minecraft.network.protocol.game.GameProtocols
+import net.minecraft.network.protocol.handshake.HandshakeProtocols
+import net.minecraft.network.protocol.login.LoginProtocols
+import net.minecraft.network.protocol.status.StatusProtocols
 import net.minecraft.server.MinecraftServer
 
 
@@ -20,18 +25,18 @@ class Packets : Extractor.Extractor {
         val packetsJson = JsonObject()
 
         val clientBound = arrayOf(
-            QueryStates.S2C_FACTORY.buildUnbound(),
-            LoginStates.S2C_FACTORY.buildUnbound(),
-            ConfigurationStates.S2C_FACTORY.buildUnbound(),
-            PlayStateFactories.S2C.buildUnbound()
+            StatusProtocols.CLIENTBOUND_TEMPLATE.details(),
+            LoginProtocols.CLIENTBOUND_TEMPLATE.details(),
+            ConfigurationProtocols.CLIENTBOUND_TEMPLATE.details(),
+            GameProtocols.CLIENTBOUND_TEMPLATE.details()
         )
 
         val serverBound = arrayOf(
-            HandshakeStates.C2S_FACTORY.buildUnbound(),
-            QueryStates.C2S_FACTORY.buildUnbound(),
-            LoginStates.C2S_FACTORY.buildUnbound(),
-            ConfigurationStates.C2S_FACTORY.buildUnbound(),
-            PlayStateFactories.C2S.buildUnbound()
+            HandshakeProtocols.SERVERBOUND_TEMPLATE.details(),
+            StatusProtocols.SERVERBOUND_TEMPLATE.details(),
+            LoginProtocols.SERVERBOUND_TEMPLATE.details(),
+            ConfigurationProtocols.SERVERBOUND_TEMPLATE.details(),
+            GameProtocols.SERVERBOUND_TEMPLATE.details()
         )
         val serverBoundJson = serializeServerBound(serverBound)
         val clientBoundJson = serializeClientBound(clientBound)
@@ -43,7 +48,7 @@ class Packets : Extractor.Extractor {
 
 
     private fun serializeServerBound(
-        packets: Array<NetworkState.Unbound>
+        packets: Array<ProtocolInfo.Details>
     ): JsonObject {
         val handshakeArray = JsonArray()
         val statusArray = JsonArray()
@@ -52,13 +57,13 @@ class Packets : Extractor.Extractor {
         val playArray = JsonArray()
 
         for (factory in packets) {
-            factory.forEachPacketType { type: PacketType<*>, _: Int ->
-                when (factory.phase()!!) {
-                    NetworkPhase.HANDSHAKING -> handshakeArray.add(type.id().path)
-                    NetworkPhase.PLAY -> playArray.add(type.id().path)
-                    NetworkPhase.STATUS -> statusArray.add(type.id().path)
-                    NetworkPhase.LOGIN -> loginArray.add(type.id().path)
-                    NetworkPhase.CONFIGURATION -> configArray.add(type.id().path)
+            factory.listPackets { type: PacketType<*>, _: Int ->
+                when (factory.id()!!) {
+                    ConnectionProtocol.HANDSHAKING -> handshakeArray.add(type.id().path)
+                    ConnectionProtocol.PLAY -> playArray.add(type.id().path)
+                    ConnectionProtocol.STATUS -> statusArray.add(type.id().path)
+                    ConnectionProtocol.LOGIN -> loginArray.add(type.id().path)
+                    ConnectionProtocol.CONFIGURATION -> configArray.add(type.id().path)
                 }
             }
         }
@@ -73,7 +78,7 @@ class Packets : Extractor.Extractor {
     }
 
     private fun serializeClientBound(
-        packets: Array<NetworkState.Unbound>
+        packets: Array<ProtocolInfo.Details>
     ): JsonObject {
         val statusArray = JsonArray()
         val loginArray = JsonArray()
@@ -81,13 +86,13 @@ class Packets : Extractor.Extractor {
         val playArray = JsonArray()
 
         for (factory in packets) {
-            factory.forEachPacketType { type: PacketType<*>, _: Int ->
-                when (factory.phase()!!) {
-                    NetworkPhase.HANDSHAKING -> error("Client bound Packet should have no handshake")
-                    NetworkPhase.PLAY -> playArray.add(type.id().path)
-                    NetworkPhase.STATUS -> statusArray.add(type.id().path)
-                    NetworkPhase.LOGIN -> loginArray.add(type.id().path)
-                    NetworkPhase.CONFIGURATION -> configArray.add(type.id().path)
+            factory.listPackets { type: PacketType<*>, _: Int ->
+                when (factory.id()!!) {
+                    ConnectionProtocol.HANDSHAKING -> error("Client bound Packet should have no handshake")
+                    ConnectionProtocol.PLAY -> playArray.add(type.id().path)
+                    ConnectionProtocol.STATUS -> statusArray.add(type.id().path)
+                    ConnectionProtocol.LOGIN -> loginArray.add(type.id().path)
+                    ConnectionProtocol.CONFIGURATION -> configArray.add(type.id().path)
                 }
             }
         }

@@ -4,8 +4,8 @@ import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.google.gson.JsonPrimitive
 import de.snowii.extractor.Extractor
-import net.minecraft.item.Item
-import net.minecraft.item.ItemStack
+import net.minecraft.world.item.Item
+import net.minecraft.world.item.ItemStack
 import net.minecraft.server.MinecraftServer
 
 
@@ -17,8 +17,8 @@ class Fuels : Extractor.Extractor {
 
     override fun extract(server: MinecraftServer): JsonElement {
         val fuelsJson = JsonObject()
-        server.fuelRegistry.fuelItems.forEach { fuel ->
-            fuelsJson.add(Item.getRawId(fuel).toString(), JsonPrimitive(server.fuelRegistry.getFuelTicks(ItemStack(fuel))))
+        server.fuelValues().fuelItems().forEach { fuel ->
+            fuelsJson.add(Item.getId(fuel).toString(), JsonPrimitive(server.fuelValues().burnDuration(ItemStack(fuel))))
         }
         return fuelsJson
     }

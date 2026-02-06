@@ -4,7 +4,7 @@ import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import de.snowii.extractor.Extractor
 import net.minecraft.server.MinecraftServer
-import net.minecraft.sound.SoundCategory
+import net.minecraft.sounds.SoundSource
 
 class SoundCategory : Extractor.Extractor {
     override fun fileName(): String {
@@ -13,7 +13,7 @@ class SoundCategory : Extractor.Extractor {
 
     override fun extract(server: MinecraftServer): JsonElement {
         val categoriesJson = JsonArray()
-        for (category in SoundCategory.entries) {
+        for (category in SoundSource.entries) {
             categoriesJson.add(
                 category.name,
             )

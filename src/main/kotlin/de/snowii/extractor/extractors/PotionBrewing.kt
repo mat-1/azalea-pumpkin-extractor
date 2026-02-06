@@ -4,10 +4,10 @@ import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import de.snowii.extractor.Extractor
-import net.minecraft.potion.Potion
-import net.minecraft.recipe.Ingredient
-import net.minecraft.registry.Registries
-import net.minecraft.registry.entry.RegistryEntry
+import net.minecraft.world.item.alchemy.Potion
+import net.minecraft.world.item.crafting.Ingredient
+import net.minecraft.core.registries.BuiltInRegistries
+import net.minecraft.core.Holder
 import net.minecraft.server.MinecraftServer
 
 
@@ -19,7 +19,7 @@ class PotionBrewing : Extractor.Extractor {
 
     override fun extract(server: MinecraftServer): JsonElement {
         val json = JsonObject()
-        val reg = server.brewingRecipeRegistry
+        val reg = server.potionBrewing()
 
         val t = reg.javaClass.getDeclaredField("potionTypes")
         t.isAccessible = true
@@ -27,7 +27,7 @@ class PotionBrewing : Extractor.Extractor {
         val types = JsonArray()
         for (type in potionTypes!!) {
             val items = JsonArray()
-            for (item in type.getMatchingItems()) {
+            for (item in type.items()) {
                 items.add(item.value().toString())
             }
             types.add(items)
@@ -45,11 +45,11 @@ class PotionBrewing : Extractor.Extractor {
                 for (field in it.declaredFields) {
                     field.isAccessible = true
                     val value = field.get(recipe)
-                    if (value is RegistryEntry<*>) {
-                        recipeJson.addProperty(field.name, value.key.get().value.toString())
+                    if (value is Holder<*>) {
+                        recipeJson.addProperty(field.name, value.unwrapKey().get().identifier().toString())
                     } else if (value is Ingredient) {
                         val tags = JsonArray()
-                        for (tag in value.getMatchingItems()) {
+                        for (tag in value.items()) {
                             tags.add(tag.value().toString())
                         }
                         recipeJson.add(field.name, tags)
@@ -71,11 +71,11 @@ class PotionBrewing : Extractor.Extractor {
                 for (field in it.declaredFields) {
                     field.isAccessible = true
                     val value = field.get(recipe)
-                    if (value is RegistryEntry<*>) {
-                        recipeJson.addProperty(field.name, value.key.get().value.toString())
+                    if (value is Holder<*>) {
+                        recipeJson.addProperty(field.name, value.unwrapKey().get().identifier().toString())
                     } else if (value is Ingredient) {
                         val tags = JsonArray()
-                        for (tag in value.getMatchingItems()) {
+                        for (tag in value.items()) {
                             tags.add(tag.value().toString())
                         }
                         recipeJson.add(field.name, tags)

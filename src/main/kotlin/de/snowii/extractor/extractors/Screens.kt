@@ -3,7 +3,7 @@ package de.snowii.extractor.extractors
 import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import de.snowii.extractor.Extractor
-import net.minecraft.registry.Registries
+import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.server.MinecraftServer
 
 class Screens : Extractor.Extractor {
@@ -13,9 +13,9 @@ class Screens : Extractor.Extractor {
 
     override fun extract(server: MinecraftServer): JsonElement {
         val screensJson = JsonArray()
-        for (screen in Registries.SCREEN_HANDLER) {
+        for (screen in BuiltInRegistries.MENU) {
             screensJson.add(
-                Registries.SCREEN_HANDLER.getId(screen)!!.path,
+                BuiltInRegistries.MENU.getKey(screen)!!.path,
             )
         }
 

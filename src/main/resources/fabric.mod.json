@@ -12,10 +12,10 @@
     "main": ["de.snowii.extractor.Extractor"]
   },
   "depends": {
-    "fabricloader": ">=${loader_version}",
-    "fabric-language-kotlin": ">=${kotlin_loader_version}",
-    "fabric": "*",
-    "minecraft": "${minecraft_version}"
+    "fabricloader": "*",
+    "fabric-api": "*",
+    "fabric-language-kotlin": "*",
+    "minecraft": "*"
   },
   "accessWidener": "extractor.accesswidener"
 }

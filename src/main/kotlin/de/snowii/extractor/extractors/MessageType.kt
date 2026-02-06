@@ -4,9 +4,9 @@ import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.mojang.serialization.JsonOps
 import de.snowii.extractor.Extractor
-import net.minecraft.network.message.MessageType
-import net.minecraft.registry.RegistryKeys
-import net.minecraft.registry.RegistryOps
+import net.minecraft.network.chat.ChatType
+import net.minecraft.core.registries.Registries
+import net.minecraft.resources.RegistryOps
 import net.minecraft.server.MinecraftServer
 
 class MessageType : Extractor.Extractor {
@@ -17,17 +17,17 @@ class MessageType : Extractor.Extractor {
     override fun extract(server: MinecraftServer): JsonElement {
         val messagesJson = JsonObject()
         val messageTypeRegistry =
-            server.registryManager.getOrThrow(RegistryKeys.MESSAGE_TYPE)
+            server.registryAccess().lookupOrThrow(Registries.CHAT_TYPE)
         for (type in messageTypeRegistry) {
             val json = JsonObject()
-            json.addProperty("id", messageTypeRegistry.getRawId(type))
+            json.addProperty("id", messageTypeRegistry.getId(type))
             json.add(
-                "components", MessageType.CODEC.encodeStart(
-                    RegistryOps.of(JsonOps.INSTANCE, server.registryManager), type
+                "components", ChatType.DIRECT_CODEC.encodeStart(
+                    RegistryOps.create(JsonOps.INSTANCE, server.registryAccess()), type
                 ).getOrThrow()
             )
             messagesJson.add(
-                messageTypeRegistry.getId(type)!!.path,
+                messageTypeRegistry.getKey(type)!!.path,
                 json
             )
         }

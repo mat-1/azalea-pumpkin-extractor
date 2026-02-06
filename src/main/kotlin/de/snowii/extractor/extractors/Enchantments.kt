@@ -4,9 +4,9 @@ import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.mojang.serialization.JsonOps
 import de.snowii.extractor.Extractor
-import net.minecraft.enchantment.Enchantment
-import net.minecraft.registry.RegistryKeys
-import net.minecraft.registry.RegistryOps
+import net.minecraft.world.item.enchantment.Enchantment
+import net.minecraft.core.registries.Registries
+import net.minecraft.resources.RegistryOps
 import net.minecraft.server.MinecraftServer
 
 class Enchantments : Extractor.Extractor {
@@ -17,14 +17,14 @@ class Enchantments : Extractor.Extractor {
     override fun extract(server: MinecraftServer): JsonElement {
         val finalJson = JsonObject()
         val registry =
-            server.registryManager.getOrThrow(RegistryKeys.ENCHANTMENT)
+            server.registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
         for (enchantment in registry) {
-            val sub = Enchantment.CODEC.encodeStart(
-                RegistryOps.of(JsonOps.INSTANCE, server.registryManager), enchantment
+            val sub = Enchantment.DIRECT_CODEC.encodeStart(
+                RegistryOps.create(JsonOps.INSTANCE, server.registryAccess()), enchantment
             ).getOrThrow() as JsonObject
-            sub.addProperty("id", registry.getRawId(enchantment))
+            sub.addProperty("id", registry.getId(enchantment))
             finalJson.add(
-                registry.getId(enchantment)!!.toString(), sub
+                registry.getKey(enchantment)!!.toString(), sub
             )
         }
         return finalJson

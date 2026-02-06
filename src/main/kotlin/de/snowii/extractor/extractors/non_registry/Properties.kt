@@ -5,10 +5,10 @@ import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import de.snowii.extractor.Extractor
 import net.minecraft.server.MinecraftServer
-import net.minecraft.state.property.BooleanProperty
-import net.minecraft.state.property.EnumProperty
-import net.minecraft.state.property.IntProperty
-import net.minecraft.state.property.Property
+import net.minecraft.world.level.block.state.properties.BooleanProperty
+import net.minecraft.world.level.block.state.properties.EnumProperty
+import net.minecraft.world.level.block.state.properties.IntegerProperty
+import net.minecraft.world.level.block.state.properties.Property
 import java.lang.reflect.Modifier
 
 class Properties : Extractor.Extractor {
@@ -19,7 +19,7 @@ class Properties : Extractor.Extractor {
     override fun extract(server: MinecraftServer): JsonElement {
         val topLevelJson = JsonArray()
 
-        for (field in net.minecraft.state.property.Properties::class.java.declaredFields) {
+        for (field in net.minecraft.world.level.block.state.properties.BlockStateProperties::class.java.declaredFields) {
             if (Modifier.isStatic(field.modifiers)) {
                 val maybeProperty = field.get(null)
                 if (maybeProperty is Property<*>) {
@@ -36,10 +36,10 @@ class Properties : Extractor.Extractor {
                             property.addProperty("type", "boolean")
                         }
 
-                        is IntProperty -> {
+                        is IntegerProperty -> {
                             var min: Int? = null
                             var max: Int? = null
-                            for (intField in IntProperty::class.java.declaredFields) {
+                            for (intField in IntegerProperty::class.java.declaredFields) {
                                 intField.trySetAccessible()
                                 if (intField.name == "min") {
                                     min = intField.get(maybeProperty) as Int
@@ -55,7 +55,7 @@ class Properties : Extractor.Extractor {
                         is EnumProperty<*> -> {
                             property.addProperty("type", "enum")
                             val enumArr = JsonArray()
-                            for (value in maybeProperty.values) {
+                            for (value in maybeProperty.possibleValues) {
                                 enumArr.add(value.toString().lowercase())
                             }
                             property.add("values", enumArr)
